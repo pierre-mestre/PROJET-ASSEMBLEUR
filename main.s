@@ -137,18 +137,18 @@ __main
         	ldr r0, = PORT6		
         	str r0, [r11]			
 ; Configuration du Port D - Enable Digital Function - Port D			
-		ldr r11, = GPIO_PORTD_BASE+GPIO_O_DEN	
-        	ldr r0, = PORT7		
-        	str r0, [r11]	
+		;ldr r11, = GPIO_PORTD_BASE+GPIO_O_DEN	
+        ;	ldr r0, = PORT7		
+        ;	str r0, [r11]	
 ; Activer le registre des switchs, Port D			
 		ldr r11, = GPIO_PORTD_BASE+GPIO_PUR	
         	ldr r0, = PORT6
         	str r0, [r11]
  		;mov r2, #0x000           
 ; Activer le registre des switchs, Port D			
-		ldr r11, = GPIO_PORTD_BASE+GPIO_PUR	
-        	ldr r0, = PORT7
-			str r0, [r11]
+		;ldr r11, = GPIO_PORTD_BASE+GPIO_PUR	
+        ;	ldr r0, = PORT7
+		;	str r0, [r11]
  		;mov r2, #0x000  
 ; Enable Digital Function - Port E
 
@@ -196,15 +196,15 @@ loop
 			ldr r11,= GPIO_PORTD_BASE + (PORT6<<2)
 			ldr r4, [r11]	
 ;lecture de l'état du SW1 et ranger cet état dans r13
-			ldr r11,= GPIO_PORTD_BASE + (PORT7<<2)
-			ldr r13, [r11]
+			;ldr r11,= GPIO_PORTD_BASE + (PORT7<<2)
+			;ldr r13, [r11]
 ;Traitement qui allume/éteint la LED1 et la LED2 en fonction de l'état  ;du SW1, la LED1 est initialement allumée, et s'éteint si SW1 ;est activé = appuyé
 ;si switch 1 est actif (=0), on éteint la LED1
 			cmp	r4,#0x40
 			bne	avancer		
 ;si switch 2 est actif (=0), on éteint la LED1
-			cmp	r13,#0x80
-			bne	sortir	
+			;cmp	r13,#0x80
+			;bne	sortir	
 ;si BUMPER DROIT est actif (=0), on éteint la LED1
 
 			cmp	r5,#0x01          
