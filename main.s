@@ -29,7 +29,7 @@ SYSCTL_PERIPH_GPIOF EQU		0x400FE108
 
 GPIO_PORTF_BASE		EQU		0x40025000
 GPIO_PORTE_BASE		EQU		0x40024000
-
+GPIO_PORTD_BASE		EQU		0x40007000
 
 ; configure the corresponding pin to be an output
 ; all GPIO pins are inputs by default
@@ -76,9 +76,11 @@ PORT0				EQU		0x01
 ; PORT E : selection du BUMPER DROIT, LIGNE 1 du Port E
 
 PORT1               EQU     0x02
-
+; PORT D : selection du SW1,LIGNE 6 du Port D
+PORT6				EQU		0x40
 ; Instruction : aucune LED allumée
-
+PORT7				EQU		0x80
+; Instruction : aucune LED allumée
 NOL2D				EQU		0x00
 
 ; Instruction : LED 1 allumée, ligne 4, du port F
@@ -88,11 +90,12 @@ LED1				EQU		0x10
 ; blinking frequency, non utile dans ce programme
 
 DUREE   			EQU     0x002FFFFF	
-
+BOOL 				EQU		0x0
 	  	
 		EXPORT	__main
 
 __main	
+	mov r12, #0
   	mov r0, #0x00000038  				
 		ldr r6, = SYSCTL_PERIPH_GPIOF  		
 
@@ -129,9 +132,24 @@ __main
 		str r0, [r6]
 		
 ; pour eteindre LED
-
+; Configuration du Port D - Enable Digital Function - Port D			
+		ldr r11, = GPIO_PORTD_BASE+GPIO_O_DEN	
+        	ldr r0, = PORT6		
+        	str r0, [r11]			
+; Configuration du Port D - Enable Digital Function - Port D			
+		ldr r11, = GPIO_PORTD_BASE+GPIO_O_DEN	
+        	ldr r0, = PORT7		
+        	str r0, [r11]	
+; Activer le registre des switchs, Port D			
+		ldr r11, = GPIO_PORTD_BASE+GPIO_PUR	
+        	ldr r0, = PORT6
+        	str r0, [r11]
  		;mov r2, #0x000           
-
+; Activer le registre des switchs, Port D			
+		ldr r11, = GPIO_PORTD_BASE+GPIO_PUR	
+        	ldr r0, = PORT7
+			str r0, [r11]
+ 		;mov r2, #0x000  
 ; Enable Digital Function - Port E
 
 		ldr r7, = GPIO_PORTE_BASE+GPIO_O_DEN	
@@ -152,10 +170,13 @@ __main
 		; Activer les deux moteurs droit et gauche
 		BL	MOTEUR_DROIT_OFF
 		BL	MOTEUR_GAUCHE_OFF
+		
+
 
 		; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur lui même)
 loop	
-
+	
+		
 			; Evalbot avance droit devant
 				; Avancement pendant une période (deux WAIT)
 		mov r3, #PORT45       				
@@ -170,18 +191,29 @@ loop
 
             ldr r9, =  GPIO_PORTE_BASE + (PORT1<<2)
 			ldr r10, [r9]
-
+			
+;lecture de l'état du SW1 et ranger cet état dans r4
+			ldr r11,= GPIO_PORTD_BASE + (PORT6<<2)
+			ldr r4, [r11]	
+;lecture de l'état du SW1 et ranger cet état dans r13
+			ldr r11,= GPIO_PORTD_BASE + (PORT7<<2)
+			ldr r13, [r11]
 ;Traitement qui allume/éteint la LED1 et la LED2 en fonction de l'état  ;du SW1, la LED1 est initialement allumée, et s'éteint si SW1 ;est activé = appuyé
-
+;si switch 1 est actif (=0), on éteint la LED1
+			cmp	r4,#0x40
+			bne	avancer		
+;si switch 2 est actif (=0), on éteint la LED1
+			cmp	r13,#0x80
+			bne	sortir	
 ;si BUMPER DROIT est actif (=0), on éteint la LED1
 
 			cmp	r5,#0x01          
-			bne	noled1
+			bne	crenaux
 			
 ;si BUMPER GAUCHE est actif (=0), on éteint la LED2
 
 			cmp r10, #0x02
-			bne noled2
+			bne crenaux
 
 			str r3, [r6]          ; allume les leds 1 et 2
 			
@@ -189,32 +221,86 @@ loop
 		ldr r1, =0xAFFFFF 	; BL (Branchement vers le lien WAIT); possibilité de retour à la suite avec (BX LR)
 		ldr r1, =0xAFFFFF 
 
-
 		b	loop
-noled1		
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_DROIT_AVANT	
+crenaux		
 			ldr r6, = GPIO_PORTF_BASE + (PORT4<<2) 
 			str r2, [r6]          ; éteint la led 1
+			ldr r6, = GPIO_PORTF_BASE + (PORT5<<2)
+			str r2, [r6]          ; éteint la led 2
+			BL	MOTEUR_DROIT_OFF
+			BL	MOTEUR_GAUCHE_OFF
+			ldr r1, =0x555555
+			BL  wait1
+			BL	MOTEUR_DROIT_ON
+			BL	MOTEUR_GAUCHE_ON
+			BL	MOTEUR_GAUCHE_ARRIERE
+			BL	MOTEUR_DROIT_ARRIERE
+			ldr r1, =0x1312D00
+			BL 	wait1
+			BL	MOTEUR_DROIT_OFF
+			BL	MOTEUR_GAUCHE_OFF
+			ldr r1, =0x555555
+			BL  wait1
+			ldr r1, =0xBFFFFF
+			BL	MOTEUR_GAUCHE_ON
+			BL	MOTEUR_DROIT_ON
+			BL	MOTEUR_DROIT_AVANT
+			BL	MOTEUR_GAUCHE_ARRIERE
+			BL  wait1
+			BL	MOTEUR_DROIT_OFF
+			BL	MOTEUR_GAUCHE_OFF
+			ldr r1, =0x555555
+			BL  wait1
+			ldr r1, =0x1312D00
+			BL	MOTEUR_DROIT_ON
+			BL	MOTEUR_GAUCHE_ON
+			BL	MOTEUR_GAUCHE_ARRIERE
+			BL	MOTEUR_DROIT_ARRIERE
+			BL  wait1
+			BL	MOTEUR_DROIT_OFF
+			BL	MOTEUR_GAUCHE_OFF
+			ldr r1, =0x555555
+			BL  wait1
+			ldr r1, =0xBFFFFF
+			BL	MOTEUR_GAUCHE_ON
+			BL	MOTEUR_DROIT_ON
+			BL	MOTEUR_DROIT_ARRIERE
+			BL	MOTEUR_GAUCHE_AVANT
+			BL  wait1
+			BL	MOTEUR_DROIT_OFF
+			BL	MOTEUR_GAUCHE_OFF
+			ldr r1, =0x555555
+			BL  wait1
+			mov r12, #1
 			b	loop	
 			
 ;éteindre LED2
-
-noled2      
-			BL	MOTEUR_GAUCHE_ON
-			BL	MOTEUR_GAUCHE_AVANT	
-			ldr r6, = GPIO_PORTF_BASE + (PORT5<<2)
-			str r2, [r6]          ; éteint la led 2
-            b   loop
-			nop		
-     		   	END 
-		;; Boucle d'attante
-
+avancer
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_DROIT_AVANT
+		BL	MOTEUR_GAUCHE_AVANT
+		b 	loop
+sortir
+		cmp r12, #1
+		BNE loop
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_DROIT_AVANT
+		BL	MOTEUR_GAUCHE_AVANT
+		mov r12, #0
+		b 	loop
+		
 wait1	subs r1, #1
         bne wait1
-		
 		;; retour à la suite du lien de branchement
 		BX	LR
 
 		NOP
+		NOP
         END
+		
+			nop	
+     		   	END 
+		;; Boucle d'attante
+

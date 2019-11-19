@@ -69,7 +69,9 @@ ARM Macro Assembler    Page 1
 ARM Macro Assembler    Page 2 
 
 
-   32 00000000         
+   32 00000000 40007000 
+                       GPIO_PORTD_BASE
+                               EQU              0x40007000
    33 00000000         
    34 00000000         ; configure the corresponding pin to be an output
    35 00000000         ; all GPIO pins are inputs by default
@@ -126,14 +128,14 @@ ARM Macro Assembler    Page 2
    69 00000000         
    70 00000000 00000003 
                        PORT01  EQU              0x03
-   71 00000000         
-   72 00000000         ; PORT E : selection du BUMPER DROIT, LIGNE 0 du Port E
 
 
 
 ARM Macro Assembler    Page 3 
 
 
+   71 00000000         
+   72 00000000         ; PORT E : selection du BUMPER DROIT, LIGNE 0 du Port E
    73 00000000         
    74 00000000 00000001 
                        PORT0   EQU              0x01
@@ -142,193 +144,306 @@ ARM Macro Assembler    Page 3
    77 00000000         
    78 00000000 00000002 
                        PORT1   EQU              0x02
-   79 00000000         
-   80 00000000         ; Instruction : aucune LED allumée
-   81 00000000         
-   82 00000000 00000000 
+   79 00000000         ; PORT D : selection du SW1,LIGNE 6 du Port D
+   80 00000000 00000040 
+                       PORT6   EQU              0x40
+   81 00000000         ; Instruction : aucune LED allumée
+   82 00000000 00000080 
+                       PORT7   EQU              0x80
+   83 00000000         ; Instruction : aucune LED allumée
+   84 00000000 00000000 
                        NOL2D   EQU              0x00
-   83 00000000         
-   84 00000000         ; Instruction : LED 1 allumée, ligne 4, du port F
    85 00000000         
-   86 00000000 00000010 
-                       LED1    EQU              0x10
+   86 00000000         ; Instruction : LED 1 allumée, ligne 4, du port F
    87 00000000         
-   88 00000000         ; blinking frequency, non utile dans ce programme
+   88 00000000 00000010 
+                       LED1    EQU              0x10
    89 00000000         
-   90 00000000 002FFFFF 
-                       DUREE   EQU              0x002FFFFF
+   90 00000000         ; blinking frequency, non utile dans ce programme
    91 00000000         
-   92 00000000         
-   93 00000000                 EXPORT           __main
+   92 00000000 002FFFFF 
+                       DUREE   EQU              0x002FFFFF
+   93 00000000 00000000 
+                       BOOL    EQU              0x0
    94 00000000         
-   95 00000000         __main
-   96 00000000 F04F 0038       mov              r0, #0x00000038
-   97 00000004 4E1F            ldr              r6, = SYSCTL_PERIPH_GPIOF
-   98 00000006         
-   99 00000006 6030            str              r0, [r6]
-  100 00000008         
-  101 00000008         ;"There must be a delay of 3 system clocks before any GP
+   95 00000000                 EXPORT           __main
+   96 00000000         
+   97 00000000         __main
+   98 00000000 F04F 0C00       mov              r12, #0
+   99 00000004 F04F 0038       mov              r0, #0x00000038
+  100 00000008 4E64            ldr              r6, = SYSCTL_PERIPH_GPIOF
+  101 0000000A         
+  102 0000000A 6030            str              r0, [r6]
+  103 0000000C         
+  104 0000000C         ;"There must be a delay of 3 system clocks before any GP
                        IO reg. access  (p413 datasheet de lm3s9B92.pdf)
-  102 00000008         ;tres tres important....;; pas necessaire en simu ou en 
+  105 0000000C         ;tres tres important....;; pas necessaire en simu ou en 
                        debbug ;step by step...
-  103 00000008         
-  104 00000008 BF00            nop
-  105 0000000A BF00            nop
-  106 0000000C BF00            nop
-  107 0000000E         
-  108 0000000E         ; CONFIGURATION LED
-  109 0000000E         
-  110 0000000E 4E1E            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DI
+  106 0000000C         
+  107 0000000C BF00            nop
+  108 0000000E BF00            nop
+  109 00000010 BF00            nop
+  110 00000012         
+  111 00000012         ; CONFIGURATION LED
+  112 00000012         
+  113 00000012 4E63            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DI
 R
-  111 00000010         
-  112 00000010         ; une broche (Pin) du portF en sortie (broche 4 et 5 : 0
+  114 00000014         
+  115 00000014         ; une broche (Pin) du portF en sortie (broche 4 et 5 : 0
                        0110000)
-  113 00000010         
-  114 00000010 F04F 0030       ldr              r0, = PORT45
-  115 00000014 6030            str              r0, [r6]
-  116 00000016         ;ldr r0, = PORT5
-  117 00000016         ;str r0, [r8]  ; r8 contient sortie du PORT5
-  118 00000016         
-  119 00000016         ; Enable Digital Function  
-  120 00000016         
-  121 00000016 4E1D            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DE
-N
+  116 00000014         
+  117 00000014 F04F 0030       ldr              r0, = PORT45
 
 
 
 ARM Macro Assembler    Page 4 
 
 
-  122 00000018 F04F 0030       ldr              r0, = PORT45
-  123 0000001C 6030            str              r0, [r6]
-  124 0000001E         
-  125 0000001E         ; Choix de l'intensité de sortie (2mA) 
-  126 0000001E         
-  127 0000001E 4E1C            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DR
-2R
-  128 00000020 F04F 0030       ldr              r0, = PORT45
-  129 00000024 6030            str              r0, [r6]
-  130 00000026         
-  131 00000026         ; pour eteindre LED
-  132 00000026         
-  133 00000026         ;mov r2, #0x000           
-  134 00000026         
-  135 00000026         ; Enable Digital Function - Port E
-  136 00000026         
-  137 00000026 4F1B            ldr              r7, = GPIO_PORTE_BASE+GPIO_O_DE
+  118 00000018 6030            str              r0, [r6]
+  119 0000001A         ;ldr r0, = PORT5
+  120 0000001A         ;str r0, [r8]  ; r8 contient sortie du PORT5
+  121 0000001A         
+  122 0000001A         ; Enable Digital Function  
+  123 0000001A         
+  124 0000001A 4E62            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DE
 N
-  138 00000028 F04F 0003       ldr              r0, = PORT01
-  139 0000002C 6038            str              r0, [r7]
-  140 0000002E         
-  141 0000002E         ; Activer le registre des bumpers, Port E
-  142 0000002E         
-  143 0000002E 4F1A            ldr              r7, = GPIO_PORTE_BASE+GPIO_PUR
-  144 00000030 F04F 0003       ldr              r0, = PORT01
-  145 00000034 6038            str              r0, [r7]
-  146 00000036         
-  147 00000036         ;; BL Branchement vers un lien (sous programme)
-  148 00000036         
-  149 00000036         ; Configure les PWM + GPIO
-  150 00000036 F7FF FFFE       BL               MOTEUR_INIT
-  151 0000003A         
-  152 0000003A         ; Activer les deux moteurs droit et gauche
-  153 0000003A F7FF FFFE       BL               MOTEUR_DROIT_OFF
-  154 0000003E F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
-  155 00000042         
-  156 00000042         ; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur l
-                       ui même)
-  157 00000042         loop
-  158 00000042         
-  159 00000042         ; Evalbot avance droit devant
-  160 00000042         ; Avancement pendant une période (deux WAIT)
-  161 00000042 F04F 0330       mov              r3, #PORT45
-  162 00000046 4E15            ldr              r6, = GPIO_PORTF_BASE + (PORT45
-<<2)
-  163 00000048         
-  164 00000048         ;lecture de l'état du BUMPER DROIT
-  165 00000048         
-  166 00000048 4F15            ldr              r7,= GPIO_PORTE_BASE + (PORT0<<
-2)
-  167 0000004A 683D            ldr              r5, [r7]
-  168 0000004C         
-  169 0000004C         ;lecture de l'état du BUMPER GAUCHE
-  170 0000004C         
-  171 0000004C F8DF 9054       ldr              r9, =  GPIO_PORTE_BASE + (PORT1
-<<2)
-  172 00000050 F8D9 A000       ldr              r10, [r9]
-  173 00000054         
-  174 00000054         ;Traitement qui allume/éteint la LED1 et la LED2 en fonc
+  125 0000001C F04F 0030       ldr              r0, = PORT45
+  126 00000020 6030            str              r0, [r6]
+  127 00000022         
+  128 00000022         ; Choix de l'intensité de sortie (2mA) 
+  129 00000022         
+  130 00000022 4E61            ldr              r6, = GPIO_PORTF_BASE+GPIO_O_DR
+2R
+  131 00000024 F04F 0030       ldr              r0, = PORT45
+  132 00000028 6030            str              r0, [r6]
+  133 0000002A         
+  134 0000002A         ; pour eteindre LED
+  135 0000002A         ; Configuration du Port D - Enable Digital Function - Po
+                       rt D   
+  136 0000002A F8DF B180       ldr              r11, = GPIO_PORTD_BASE+GPIO_O_D
+EN
+  137 0000002E F04F 0040       ldr              r0, = PORT6
+  138 00000032 F8CB 0000       str              r0, [r11]
+  139 00000036         ; Configuration du Port D - Enable Digital Function - Po
+                       rt D   
+  140 00000036 F8DF B174       ldr              r11, = GPIO_PORTD_BASE+GPIO_O_D
+EN
+  141 0000003A F04F 0080       ldr              r0, = PORT7
+  142 0000003E F8CB 0000       str              r0, [r11]
+  143 00000042         ; Activer le registre des switchs, Port D   
+  144 00000042 F8DF B16C       ldr              r11, = GPIO_PORTD_BASE+GPIO_PUR
+  145 00000046 F04F 0040       ldr              r0, = PORT6
+  146 0000004A F8CB 0000       str              r0, [r11]
+  147 0000004E         ;mov r2, #0x000           
+  148 0000004E         ; Activer le registre des switchs, Port D   
+  149 0000004E F8DF B160       ldr              r11, = GPIO_PORTD_BASE+GPIO_PUR
+  150 00000052 F04F 0080       ldr              r0, = PORT7
+  151 00000056 F8CB 0000       str              r0, [r11]
+  152 0000005A         ;mov r2, #0x000  
+  153 0000005A         ; Enable Digital Function - Port E
+  154 0000005A         
+  155 0000005A 4F56            ldr              r7, = GPIO_PORTE_BASE+GPIO_O_DE
+N
+  156 0000005C F04F 0003       ldr              r0, = PORT01
+  157 00000060 6038            str              r0, [r7]
+  158 00000062         
+  159 00000062         ; Activer le registre des bumpers, Port E
+  160 00000062         
+  161 00000062 4F55            ldr              r7, = GPIO_PORTE_BASE+GPIO_PUR
+  162 00000064 F04F 0003       ldr              r0, = PORT01
+  163 00000068 6038            str              r0, [r7]
+  164 0000006A         
+  165 0000006A         ;; BL Branchement vers un lien (sous programme)
+  166 0000006A         
+  167 0000006A         ; Configure les PWM + GPIO
+  168 0000006A F7FF FFFE       BL               MOTEUR_INIT
+  169 0000006E         
 
 
 
 ARM Macro Assembler    Page 5 
 
 
+  170 0000006E         ; Activer les deux moteurs droit et gauche
+  171 0000006E F7FF FFFE       BL               MOTEUR_DROIT_OFF
+  172 00000072 F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
+  173 00000076         
+  174 00000076         
+  175 00000076         
+  176 00000076         ; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur l
+                       ui même)
+  177 00000076         loop
+  178 00000076         
+  179 00000076         
+  180 00000076         ; Evalbot avance droit devant
+  181 00000076         ; Avancement pendant une période (deux WAIT)
+  182 00000076 F04F 0330       mov              r3, #PORT45
+  183 0000007A 4E50            ldr              r6, = GPIO_PORTF_BASE + (PORT45
+<<2)
+  184 0000007C         
+  185 0000007C         ;lecture de l'état du BUMPER DROIT
+  186 0000007C         
+  187 0000007C 4F50            ldr              r7,= GPIO_PORTE_BASE + (PORT0<<
+2)
+  188 0000007E 683D            ldr              r5, [r7]
+  189 00000080         
+  190 00000080         ;lecture de l'état du BUMPER GAUCHE
+  191 00000080         
+  192 00000080 F8DF 9140       ldr              r9, =  GPIO_PORTE_BASE + (PORT1
+<<2)
+  193 00000084 F8D9 A000       ldr              r10, [r9]
+  194 00000088         
+  195 00000088         ;lecture de l'état du SW1 et ranger cet état dans r4
+  196 00000088 F8DF B13C       ldr              r11,= GPIO_PORTD_BASE + (PORT6<
+<2)
+  197 0000008C F8DB 4000       ldr              r4, [r11]
+  198 00000090         ;lecture de l'état du SW1 et ranger cet état dans r13
+  199 00000090 F8DF B138       ldr              r11,= GPIO_PORTD_BASE + (PORT7<
+<2)
+  200 00000094 F8DB D000       ldr              r13, [r11]
+  201 00000098         ;Traitement qui allume/éteint la LED1 et la LED2 en fonc
                        tion de l'état  ;du SW1, la LED1 est initialement allumé
                        e, et s'éteint si SW1 ;est activé = appuyé
-  175 00000054         
-  176 00000054         ;si BUMPER DROIT est actif (=0), on éteint la LED1
-  177 00000054         
-  178 00000054 2D01            cmp              r5,#0x01
-  179 00000056 D106            bne              noled1
-  180 00000058         
-  181 00000058         ;si BUMPER GAUCHE est actif (=0), on éteint la LED2
-  182 00000058         
-  183 00000058 F1BA 0F02       cmp              r10, #0x02
-  184 0000005C D10A            bne              noled2
-  185 0000005E         
-  186 0000005E 6033            str              r3, [r6]    ; allume les leds 1
+  202 00000098         ;si switch 1 est actif (=0), on éteint la LED1
+  203 00000098 2C40            cmp              r4,#0x40
+  204 0000009A D161            bne              avancer
+  205 0000009C         ;si switch 2 est actif (=0), on éteint la LED1
+  206 0000009C F1BD 0F80       cmp              r13,#0x80
+  207 000000A0 D167            bne              sortir
+  208 000000A2         ;si BUMPER DROIT est actif (=0), on éteint la LED1
+  209 000000A2         
+  210 000000A2 2D01            cmp              r5,#0x01
+  211 000000A4 D106            bne              crenaux
+  212 000000A6         
+  213 000000A6         ;si BUMPER GAUCHE est actif (=0), on éteint la LED2
+  214 000000A6         
+  215 000000A6 F1BA 0F02       cmp              r10, #0x02
+  216 000000AA D103            bne              crenaux
+  217 000000AC         
+  218 000000AC 6033            str              r3, [r6]    ; allume les leds 1
                                                              et 2
-  187 00000060         
-  188 00000060         
-  189 00000060 4911            ldr              r1, =0xAFFFFF ; BL (Branchement
-                                                             vers le lien WAIT)
-                                                            ; possibilité de re
-                                                            tour à la suite ave
-                                                            c (BX LR)
-  190 00000062 4911            ldr              r1, =0xAFFFFF
-  191 00000064         
-  192 00000064         
-  193 00000064 E7ED            b                loop
-  194 00000066         noled1
-  195 00000066 F7FF FFFE       BL               MOTEUR_DROIT_ON
-  196 0000006A F7FF FFFE       BL               MOTEUR_DROIT_AVANT
-  197 0000006E 4E0F            ldr              r6, = GPIO_PORTF_BASE + (PORT4<
-<2)
-  198 00000070 6032            str              r2, [r6]    ; éteint la led 1
-  199 00000072 E7E6            b                loop
-  200 00000074         
-  201 00000074         ;éteindre LED2
-  202 00000074         
-  203 00000074         noled2
-  204 00000074 F7FF FFFE       BL               MOTEUR_GAUCHE_ON
-  205 00000078 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
-  206 0000007C 4E0C            ldr              r6, = GPIO_PORTF_BASE + (PORT5<
-<2)
-  207 0000007E 6032            str              r2, [r6]    ; éteint la led 2
-  208 00000080 E7DF            b                loop
-  209 00000082 BF00            nop
-  210 00000084                 END
-              400FE108 
-              40025400 
-              4002551C 
-              40025500 
-              4002451C 
-              40024510 
-              400250C0 
-              40024004 
-              40024008 
-              00AFFFFF 
-              40025040 
-              40025080 
-Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
-ork --depend=.\objects\main.d -o.\objects\main.o -I.\RTE\_Target_1 -IC:\Keil_v5
+  219 000000AE         
 
 
 
 ARM Macro Assembler    Page 6 
 
 
+  220 000000AE         
+  221 000000AE 4948            ldr              r1, =0xAFFFFF ; BL (Branchement
+                                                             vers le lien WAIT)
+                                                            ; possibilité de re
+                                                            tour à la suite ave
+                                                            c (BX LR)
+  222 000000B0 4947            ldr              r1, =0xAFFFFF
+  223 000000B2         
+  224 000000B2 E7E0            b                loop
+  225 000000B4         crenaux
+  226 000000B4 4E47            ldr              r6, = GPIO_PORTF_BASE + (PORT4<
+<2)
+  227 000000B6 6032            str              r2, [r6]    ; éteint la led 1
+  228 000000B8 4E47            ldr              r6, = GPIO_PORTF_BASE + (PORT5<
+<2)
+  229 000000BA 6032            str              r2, [r6]    ; éteint la led 2
+  230 000000BC F7FF FFFE       BL               MOTEUR_DROIT_OFF
+  231 000000C0 F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
+  232 000000C4 4945            ldr              r1, =0x555555
+  233 000000C6 F000 F863       BL               wait1
+  234 000000CA F7FF FFFE       BL               MOTEUR_DROIT_ON
+  235 000000CE F7FF FFFE       BL               MOTEUR_GAUCHE_ON
+  236 000000D2 F7FF FFFE       BL               MOTEUR_GAUCHE_ARRIERE
+  237 000000D6 F7FF FFFE       BL               MOTEUR_DROIT_ARRIERE
+  238 000000DA 4941            ldr              r1, =0x1312D00
+  239 000000DC F000 F858       BL               wait1
+  240 000000E0 F7FF FFFE       BL               MOTEUR_DROIT_OFF
+  241 000000E4 F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
+  242 000000E8 493C            ldr              r1, =0x555555
+  243 000000EA F000 F851       BL               wait1
+  244 000000EE 493D            ldr              r1, =0xBFFFFF
+  245 000000F0 F7FF FFFE       BL               MOTEUR_GAUCHE_ON
+  246 000000F4 F7FF FFFE       BL               MOTEUR_DROIT_ON
+  247 000000F8 F7FF FFFE       BL               MOTEUR_DROIT_AVANT
+  248 000000FC F7FF FFFE       BL               MOTEUR_GAUCHE_ARRIERE
+  249 00000100 F000 F846       BL               wait1
+  250 00000104 F7FF FFFE       BL               MOTEUR_DROIT_OFF
+  251 00000108 F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
+  252 0000010C 4933            ldr              r1, =0x555555
+  253 0000010E F000 F83F       BL               wait1
+  254 00000112 4933            ldr              r1, =0x1312D00
+  255 00000114 F7FF FFFE       BL               MOTEUR_DROIT_ON
+  256 00000118 F7FF FFFE       BL               MOTEUR_GAUCHE_ON
+  257 0000011C F7FF FFFE       BL               MOTEUR_GAUCHE_ARRIERE
+  258 00000120 F7FF FFFE       BL               MOTEUR_DROIT_ARRIERE
+  259 00000124 F000 F834       BL               wait1
+  260 00000128 F7FF FFFE       BL               MOTEUR_DROIT_OFF
+  261 0000012C F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
+  262 00000130 492A            ldr              r1, =0x555555
+  263 00000132 F000 F82D       BL               wait1
+  264 00000136 492B            ldr              r1, =0xBFFFFF
+  265 00000138 F7FF FFFE       BL               MOTEUR_GAUCHE_ON
+  266 0000013C F7FF FFFE       BL               MOTEUR_DROIT_ON
+  267 00000140 F7FF FFFE       BL               MOTEUR_DROIT_ARRIERE
+  268 00000144 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
+  269 00000148 F000 F822       BL               wait1
+  270 0000014C F7FF FFFE       BL               MOTEUR_DROIT_OFF
+  271 00000150 F7FF FFFE       BL               MOTEUR_GAUCHE_OFF
+  272 00000154 4921            ldr              r1, =0x555555
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+  273 00000156 F000 F81B       BL               wait1
+  274 0000015A F04F 0C01       mov              r12, #1
+  275 0000015E E78A            b                loop
+  276 00000160         
+  277 00000160         ;éteindre LED2
+  278 00000160         avancer
+  279 00000160 F7FF FFFE       BL               MOTEUR_DROIT_ON
+  280 00000164 F7FF FFFE       BL               MOTEUR_GAUCHE_ON
+  281 00000168 F7FF FFFE       BL               MOTEUR_DROIT_AVANT
+  282 0000016C F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
+  283 00000170 E781            b                loop
+  284 00000172         sortir
+  285 00000172 F1BC 0F01       cmp              r12, #1
+  286 00000176 F47F AF7E       BNE              loop
+  287 0000017A F7FF FFFE       BL               MOTEUR_DROIT_ON
+  288 0000017E F7FF FFFE       BL               MOTEUR_GAUCHE_ON
+  289 00000182 F7FF FFFE       BL               MOTEUR_DROIT_AVANT
+  290 00000186 F7FF FFFE       BL               MOTEUR_GAUCHE_AVANT
+  291 0000018A F04F 0C00       mov              r12, #0
+  292 0000018E E772            b                loop
+  293 00000190         
+  294 00000190 3901    wait1   subs             r1, #1
+  295 00000192 D1FD            bne              wait1
+  296 00000194         ;; retour à la suite du lien de branchement
+  297 00000194 4770            BX               LR
+  298 00000196         
+  299 00000196 BF00            NOP
+  300 00000198 BF00            NOP
+  301 0000019A                 END
+              00 00 400FE108 
+              40025400 
+              4002551C 
+              40025500 
+              4000751C 
+              40007510 
+              4002451C 
+              40024510 
+              400250C0 
+              40024004 
+              40024008 
+              40007100 
+              40007200 
+              00AFFFFF 
+              40025040 
+              40025080 
+              00555555 
+              01312D00 
+              00BFFFFF 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
+ork --depend=.\objects\main.d -o.\objects\main.o -I.\RTE\_Target_1 -IC:\Keil_v5
 \ARM\PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.
 4.0\Device\ARM\ARMCM3\Include --predefine="__EVAL SETA 1" --predefine="__MICROL
 IB SETA 1" --predefine="__UVISION_VERSION SETA 526" --predefine="_RTE_ SETA 1" 
@@ -351,49 +466,91 @@ __main 00000000
 
 Symbol: __main
    Definitions
-      At line 95 in file main.s
+      At line 97 in file main.s
    Uses
       At line 9 in file main.s
-      At line 93 in file main.s
+      At line 95 in file main.s
 
-loop 00000042
+avancer 00000160
+
+Symbol: avancer
+   Definitions
+      At line 278 in file main.s
+   Uses
+      At line 204 in file main.s
+Comment: avancer used once
+crenaux 000000B4
+
+Symbol: crenaux
+   Definitions
+      At line 225 in file main.s
+   Uses
+      At line 211 in file main.s
+      At line 216 in file main.s
+
+loop 00000076
 
 Symbol: loop
    Definitions
-      At line 157 in file main.s
+      At line 177 in file main.s
    Uses
-      At line 193 in file main.s
-      At line 199 in file main.s
-      At line 208 in file main.s
+      At line 224 in file main.s
+      At line 275 in file main.s
+      At line 283 in file main.s
+      At line 286 in file main.s
+      At line 292 in file main.s
 
-noled1 00000066
+sortir 00000172
 
-Symbol: noled1
+Symbol: sortir
    Definitions
-      At line 194 in file main.s
+      At line 284 in file main.s
    Uses
-      At line 179 in file main.s
-Comment: noled1 used once
-noled2 00000074
+      At line 207 in file main.s
+Comment: sortir used once
+wait1 00000190
 
-Symbol: noled2
+Symbol: wait1
    Definitions
-      At line 203 in file main.s
+      At line 294 in file main.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
    Uses
-      At line 184 in file main.s
-Comment: noled2 used once
-5 symbols
+      At line 233 in file main.s
+      At line 239 in file main.s
+      At line 243 in file main.s
+      At line 249 in file main.s
+      At line 253 in file main.s
+      At line 259 in file main.s
+      At line 263 in file main.s
+      At line 269 in file main.s
+      At line 273 in file main.s
+      At line 295 in file main.s
+
+7 symbols
 
 
 
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Absolute symbols
 
+BOOL 00000000
+
+Symbol: BOOL
+   Definitions
+      At line 93 in file main.s
+   Uses
+      None
+Comment: BOOL unused
 DUREE 002FFFFF
 
 Symbol: DUREE
    Definitions
-      At line 90 in file main.s
+      At line 92 in file main.s
    Uses
       None
 Comment: DUREE unused
@@ -403,8 +560,10 @@ Symbol: GPIO_O_DEN
    Definitions
       At line 50 in file main.s
    Uses
-      At line 121 in file main.s
-      At line 137 in file main.s
+      At line 124 in file main.s
+      At line 136 in file main.s
+      At line 140 in file main.s
+      At line 155 in file main.s
 
 GPIO_O_DIR 00000400
 
@@ -412,7 +571,7 @@ Symbol: GPIO_O_DIR
    Definitions
       At line 38 in file main.s
    Uses
-      At line 110 in file main.s
+      At line 113 in file main.s
 Comment: GPIO_O_DIR used once
 GPIO_O_DR2R 00000500
 
@@ -420,18 +579,37 @@ Symbol: GPIO_O_DR2R
    Definitions
       At line 44 in file main.s
    Uses
-      At line 127 in file main.s
+      At line 130 in file main.s
 Comment: GPIO_O_DR2R used once
+GPIO_PORTD_BASE 40007000
+
+Symbol: GPIO_PORTD_BASE
+   Definitions
+      At line 32 in file main.s
+   Uses
+      At line 136 in file main.s
+      At line 140 in file main.s
+      At line 144 in file main.s
+      At line 149 in file main.s
+      At line 196 in file main.s
+      At line 199 in file main.s
+
 GPIO_PORTE_BASE 40024000
 
 Symbol: GPIO_PORTE_BASE
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
    Definitions
       At line 31 in file main.s
    Uses
-      At line 137 in file main.s
-      At line 143 in file main.s
-      At line 166 in file main.s
-      At line 171 in file main.s
+      At line 155 in file main.s
+      At line 161 in file main.s
+      At line 187 in file main.s
+      At line 192 in file main.s
 
 GPIO_PORTF_BASE 40025000
 
@@ -439,32 +617,28 @@ Symbol: GPIO_PORTF_BASE
    Definitions
       At line 30 in file main.s
    Uses
-      At line 110 in file main.s
-      At line 121 in file main.s
-      At line 127 in file main.s
-      At line 162 in file main.s
-      At line 197 in file main.s
-      At line 206 in file main.s
+      At line 113 in file main.s
+      At line 124 in file main.s
+      At line 130 in file main.s
+      At line 183 in file main.s
+      At line 226 in file main.s
+      At line 228 in file main.s
 
 GPIO_PUR 00000510
-
-
-
-
-ARM Macro Assembler    Page 2 Alphabetic symbol ordering
-Absolute symbols
 
 Symbol: GPIO_PUR
    Definitions
       At line 54 in file main.s
    Uses
-      At line 143 in file main.s
-Comment: GPIO_PUR used once
+      At line 144 in file main.s
+      At line 149 in file main.s
+      At line 161 in file main.s
+
 LED1 00000010
 
 Symbol: LED1
    Definitions
-      At line 86 in file main.s
+      At line 88 in file main.s
    Uses
       None
 Comment: LED1 unused
@@ -472,7 +646,7 @@ NOL2D 00000000
 
 Symbol: NOL2D
    Definitions
-      At line 82 in file main.s
+      At line 84 in file main.s
    Uses
       None
 Comment: NOL2D unused
@@ -482,36 +656,11 @@ Symbol: PORT0
    Definitions
       At line 74 in file main.s
    Uses
-      At line 166 in file main.s
+      At line 187 in file main.s
 Comment: PORT0 used once
 PORT01 00000003
 
 Symbol: PORT01
-   Definitions
-      At line 70 in file main.s
-   Uses
-      At line 138 in file main.s
-      At line 144 in file main.s
-
-PORT1 00000002
-
-Symbol: PORT1
-   Definitions
-      At line 78 in file main.s
-   Uses
-      At line 171 in file main.s
-Comment: PORT1 used once
-PORT4 00000010
-
-Symbol: PORT4
-   Definitions
-      At line 66 in file main.s
-   Uses
-      At line 197 in file main.s
-Comment: PORT4 used once
-PORT45 00000030
-
-Symbol: PORT45
    Definitions
 
 
@@ -519,13 +668,38 @@ Symbol: PORT45
 ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Absolute symbols
 
+      At line 70 in file main.s
+   Uses
+      At line 156 in file main.s
+      At line 162 in file main.s
+
+PORT1 00000002
+
+Symbol: PORT1
+   Definitions
+      At line 78 in file main.s
+   Uses
+      At line 192 in file main.s
+Comment: PORT1 used once
+PORT4 00000010
+
+Symbol: PORT4
+   Definitions
+      At line 66 in file main.s
+   Uses
+      At line 226 in file main.s
+Comment: PORT4 used once
+PORT45 00000030
+
+Symbol: PORT45
+   Definitions
       At line 58 in file main.s
    Uses
-      At line 114 in file main.s
-      At line 122 in file main.s
-      At line 128 in file main.s
-      At line 161 in file main.s
-      At line 162 in file main.s
+      At line 117 in file main.s
+      At line 125 in file main.s
+      At line 131 in file main.s
+      At line 182 in file main.s
+      At line 183 in file main.s
 
 PORT5 00000020
 
@@ -533,17 +707,43 @@ Symbol: PORT5
    Definitions
       At line 62 in file main.s
    Uses
-      At line 206 in file main.s
+      At line 228 in file main.s
 Comment: PORT5 used once
+PORT6 00000040
+
+Symbol: PORT6
+   Definitions
+      At line 80 in file main.s
+   Uses
+      At line 137 in file main.s
+      At line 145 in file main.s
+      At line 196 in file main.s
+
+PORT7 00000080
+
+Symbol: PORT7
+   Definitions
+      At line 82 in file main.s
+   Uses
+      At line 141 in file main.s
+      At line 150 in file main.s
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Absolute symbols
+
+      At line 199 in file main.s
+
 SYSCTL_PERIPH_GPIOF 400FE108
 
 Symbol: SYSCTL_PERIPH_GPIOF
    Definitions
       At line 25 in file main.s
    Uses
-      At line 97 in file main.s
+      At line 100 in file main.s
 Comment: SYSCTL_PERIPH_GPIOF used once
-16 symbols
+20 symbols
 
 
 
@@ -556,16 +756,20 @@ Symbol: MOTEUR_DROIT_ARRIERE
    Definitions
       At line 17 in file main.s
    Uses
-      None
-Comment: MOTEUR_DROIT_ARRIERE unused
+      At line 237 in file main.s
+      At line 258 in file main.s
+      At line 267 in file main.s
+
 MOTEUR_DROIT_AVANT 00000000
 
 Symbol: MOTEUR_DROIT_AVANT
    Definitions
       At line 16 in file main.s
    Uses
-      At line 196 in file main.s
-Comment: MOTEUR_DROIT_AVANT used once
+      At line 247 in file main.s
+      At line 281 in file main.s
+      At line 289 in file main.s
+
 MOTEUR_DROIT_INVERSE 00000000
 
 Symbol: MOTEUR_DROIT_INVERSE
@@ -580,41 +784,55 @@ Symbol: MOTEUR_DROIT_OFF
    Definitions
       At line 15 in file main.s
    Uses
-      At line 153 in file main.s
-Comment: MOTEUR_DROIT_OFF used once
+      At line 171 in file main.s
+      At line 230 in file main.s
+      At line 240 in file main.s
+      At line 250 in file main.s
+      At line 260 in file main.s
+      At line 270 in file main.s
+
 MOTEUR_DROIT_ON 00000000
 
 Symbol: MOTEUR_DROIT_ON
    Definitions
       At line 14 in file main.s
    Uses
-      At line 195 in file main.s
-Comment: MOTEUR_DROIT_ON used once
+      At line 234 in file main.s
+      At line 246 in file main.s
+      At line 255 in file main.s
+      At line 266 in file main.s
+      At line 279 in file main.s
+      At line 287 in file main.s
+
 MOTEUR_GAUCHE_ARRIERE 00000000
 
 Symbol: MOTEUR_GAUCHE_ARRIERE
    Definitions
       At line 23 in file main.s
-   Uses
-      None
-Comment: MOTEUR_GAUCHE_ARRIERE unused
-MOTEUR_GAUCHE_AVANT 00000000
-
-Symbol: MOTEUR_GAUCHE_AVANT
-   Definitions
-      At line 22 in file main.s
-   Uses
-      At line 205 in file main.s
-Comment: MOTEUR_GAUCHE_AVANT used once
-MOTEUR_GAUCHE_INVERSE 00000000
-
-Symbol: MOTEUR_GAUCHE_INVERSE
 
 
 
 ARM Macro Assembler    Page 2 Alphabetic symbol ordering
 External symbols
 
+   Uses
+      At line 236 in file main.s
+      At line 248 in file main.s
+      At line 257 in file main.s
+
+MOTEUR_GAUCHE_AVANT 00000000
+
+Symbol: MOTEUR_GAUCHE_AVANT
+   Definitions
+      At line 22 in file main.s
+   Uses
+      At line 268 in file main.s
+      At line 282 in file main.s
+      At line 290 in file main.s
+
+MOTEUR_GAUCHE_INVERSE 00000000
+
+Symbol: MOTEUR_GAUCHE_INVERSE
    Definitions
       At line 24 in file main.s
    Uses
@@ -626,23 +844,33 @@ Symbol: MOTEUR_GAUCHE_OFF
    Definitions
       At line 21 in file main.s
    Uses
-      At line 154 in file main.s
-Comment: MOTEUR_GAUCHE_OFF used once
+      At line 172 in file main.s
+      At line 231 in file main.s
+      At line 241 in file main.s
+      At line 251 in file main.s
+      At line 261 in file main.s
+      At line 271 in file main.s
+
 MOTEUR_GAUCHE_ON 00000000
 
 Symbol: MOTEUR_GAUCHE_ON
    Definitions
       At line 20 in file main.s
    Uses
-      At line 204 in file main.s
-Comment: MOTEUR_GAUCHE_ON used once
+      At line 235 in file main.s
+      At line 245 in file main.s
+      At line 256 in file main.s
+      At line 265 in file main.s
+      At line 280 in file main.s
+      At line 288 in file main.s
+
 MOTEUR_INIT 00000000
 
 Symbol: MOTEUR_INIT
    Definitions
       At line 12 in file main.s
    Uses
-      At line 150 in file main.s
+      At line 168 in file main.s
 Comment: MOTEUR_INIT used once
 11 symbols
-369 symbols in table
+375 symbols in table
