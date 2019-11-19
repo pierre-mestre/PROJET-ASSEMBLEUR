@@ -1,0 +1,8 @@
+;#<FEEDBACK># ARM Linker, 5060750: Last Updated: Tue Nov 19 08:22:45 2019
+;VERSION 0.2
+;FILE startup_armcm3.o
+;FILE system_armcm3.o
+SystemCoreClockUpdate <= USED 0
+__asm___15_system_ARMCM3_c_5d646a67____REV16 <= USED 0
+__asm___15_system_ARMCM3_c_5d646a67____REVSH <= USED 0
+__asm___15_system_ARMCM3_c_5d646a67____RRX <= USED 0
