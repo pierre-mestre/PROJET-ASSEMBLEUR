@@ -221,7 +221,9 @@ loop
 		ldr r1, =0xAFFFFF 
 
 		b	loop
-crenaux		
+crenaux	
+		cmp r12, #0
+		BNE loop
 		mov r12, #1
 		ldr r6, = GPIO_PORTF_BASE + (PORT4<<2) 
 		str r2, [r6]          ; éteint la led 1
