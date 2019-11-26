@@ -1,7 +1,6 @@
-; M. Akil, T. Grandpierre, R. Kachouri : département IT - ESIEE Paris -
-; 01/2013 - Evalbot (Cortex M3 de Texas Instrument)
-; programme - Pilotage 2 Moteurs Evalbot par PWM tout en ASM (Evalbot tourne sur lui même)
-
+; MESTRE Pierre & LEBAS Pierre E3FI - ESIEE Paris -
+; 11/2019 - Evalbot (Cortex M3 de Texas Instrument)
+; programme - Réaliser un créneau tout en ASM
 
 
 		AREA    |.text|, CODE, READONLY
@@ -95,7 +94,7 @@ BOOL 				EQU		0x0
 		EXPORT	__main
 
 __main	
-	mov r12, #0
+	
   	mov r0, #0x00000038  				
 		ldr r6, = SYSCTL_PERIPH_GPIOF  		
 
@@ -172,7 +171,7 @@ __main
 		BL	MOTEUR_GAUCHE_OFF
 		
 
-
+		mov r12, #0
 		; Boucle de pilotage des 2 Moteurs (Evalbot tourne sur lui même)
 loop	
 	
@@ -201,7 +200,7 @@ loop
 ;Traitement qui allume/éteint la LED1 et la LED2 en fonction de l'état  ;du SW1, la LED1 est initialement allumée, et s'éteint si SW1 ;est activé = appuyé
 ;si switch 1 est actif (=0), on éteint la LED1
 			cmp	r4,#0x40
-			bne	avancer		
+			bne	repartir		
 ;si switch 2 est actif (=0), on éteint la LED1
 			;cmp	r13,#0x80
 			;bne	sortir	
@@ -223,72 +222,106 @@ loop
 
 		b	loop
 crenaux		
-			ldr r6, = GPIO_PORTF_BASE + (PORT4<<2) 
-			str r2, [r6]          ; éteint la led 1
-			ldr r6, = GPIO_PORTF_BASE + (PORT5<<2)
-			str r2, [r6]          ; éteint la led 2
-			BL	MOTEUR_DROIT_OFF
-			BL	MOTEUR_GAUCHE_OFF
-			ldr r1, =0x555555
-			BL  wait1
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_GAUCHE_ON
-			BL	MOTEUR_GAUCHE_ARRIERE
-			BL	MOTEUR_DROIT_ARRIERE
-			ldr r1, =0x1312D00
-			BL 	wait1
-			BL	MOTEUR_DROIT_OFF
-			BL	MOTEUR_GAUCHE_OFF
-			ldr r1, =0x555555
-			BL  wait1
-			ldr r1, =0xBFFFFF
-			BL	MOTEUR_GAUCHE_ON
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_DROIT_AVANT
-			BL	MOTEUR_GAUCHE_ARRIERE
-			BL  wait1
-			BL	MOTEUR_DROIT_OFF
-			BL	MOTEUR_GAUCHE_OFF
-			ldr r1, =0x555555
-			BL  wait1
-			ldr r1, =0x1312D00
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_GAUCHE_ON
-			BL	MOTEUR_GAUCHE_ARRIERE
-			BL	MOTEUR_DROIT_ARRIERE
-			BL  wait1
-			BL	MOTEUR_DROIT_OFF
-			BL	MOTEUR_GAUCHE_OFF
-			ldr r1, =0x555555
-			BL  wait1
-			ldr r1, =0xBFFFFF
-			BL	MOTEUR_GAUCHE_ON
-			BL	MOTEUR_DROIT_ON
-			BL	MOTEUR_DROIT_ARRIERE
-			BL	MOTEUR_GAUCHE_AVANT
-			BL  wait1
-			BL	MOTEUR_DROIT_OFF
-			BL	MOTEUR_GAUCHE_OFF
-			ldr r1, =0x555555
-			BL  wait1
-			mov r12, #1
-			b	loop	
+		mov r12, #1
+		ldr r6, = GPIO_PORTF_BASE + (PORT4<<2) 
+		str r2, [r6]          ; éteint la led 1
+		ldr r6, = GPIO_PORTF_BASE + (PORT5<<2)
+		str r2, [r6]          ; éteint la led 2
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_GAUCHE_ARRIERE
+		BL	MOTEUR_DROIT_ARRIERE
+		ldr r1, =0x1312D00
+		BL 	wait1
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		ldr r1, =0xBFFFFF
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_DROIT_AVANT
+		BL	MOTEUR_GAUCHE_ARRIERE
+		BL  wait1
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		ldr r1, =0x1312D00
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_GAUCHE_ARRIERE
+		BL	MOTEUR_DROIT_ARRIERE
+		BL  wait1
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		ldr r1, =0xBFFFFF
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_DROIT_ARRIERE
+		BL	MOTEUR_GAUCHE_AVANT
+		BL  wait1
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		b	loop	
 			
 ;éteindre LED2
-avancer
-		BL	MOTEUR_DROIT_ON
-		BL	MOTEUR_GAUCHE_ON
-		BL	MOTEUR_DROIT_AVANT
-		BL	MOTEUR_GAUCHE_AVANT
-		b 	loop
-sortir
+repartir
 		cmp r12, #1
-		BNE loop
+		BNE droit
+		ldr r6, = GPIO_PORTF_BASE + (PORT4<<2) 
+		str r2, [r6]          ; éteint la led 1
+		ldr r6, = GPIO_PORTF_BASE + (PORT5<<2)
+		str r2, [r6]          ; éteint la led 2
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		ldr r1, =0xBFFFFF
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ARRIERE
+		BL	MOTEUR_DROIT_AVANT
+		BL  wait1
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		ldr r1, =0x1312D00
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_GAUCHE_AVANT
+		BL	MOTEUR_DROIT_AVANT
+		BL  wait1
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		ldr r1, =0xBFFFFF
+		BL	MOTEUR_GAUCHE_ON
+		BL	MOTEUR_DROIT_ON
+		BL	MOTEUR_DROIT_ARRIERE
+		BL	MOTEUR_GAUCHE_AVANT
+		BL  wait1
+		BL	MOTEUR_DROIT_OFF
+		BL	MOTEUR_GAUCHE_OFF
+		ldr r1, =0x555555
+		BL  wait1
+		BNE droit
+droit
+		mov r12, #0
 		BL	MOTEUR_DROIT_ON
 		BL	MOTEUR_GAUCHE_ON
 		BL	MOTEUR_DROIT_AVANT
 		BL	MOTEUR_GAUCHE_AVANT
-		mov r12, #0
 		b 	loop
 		
 wait1	subs r1, #1
